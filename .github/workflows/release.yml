@@ -73,6 +73,6 @@ jobs:
 
       - name: Publish Server binaries
         run: | 
-        dotnet publish -c Release -o publish --no-build src/BondBend.Aspire.ApiService
-        dotnet publish -c Release -o publish --no-build src/BondBend.Aspire.Web
+          dotnet publish -c Release -o publish --no-build src/BondBend.Aspire.ApiService
+          dotnet publish -c Release -o publish --no-build src/BondBend.Aspire.Web
 
