@@ -29,14 +29,22 @@ jobs:
         with:
             dotnet-version: '9.0.x'
 
-      - name: Setup Git Version
-        uses: gittools/actions/gitversion/setup@v3.2.1
+      - name: Print Folder Tree
+        uses: jaywcjlove/github-action-folder-tree@main
+        id: tree
         with:
-            versionSpec: '6.3.x'
+            exclude: ".git|.github|.vscode|.idea|bin|obj|packages|node_modules|wwwroot"
+            depth: 0
+            path: ./
+
+      - name: Setup Git Version
+        uses: gittools/actions/gitversion/setup@v0.10.2
+        with:
+            versionSpec: '5.x'
 
       - name: Determine Version
         id: version_step # step id used as a reference for output values
-        uses: gittools/actions/gitversion/execute@v3.2.1
+        uses: gittools/actions/gitversion/execute@v0.10.2
         with:
             useConfigFile: true
 
