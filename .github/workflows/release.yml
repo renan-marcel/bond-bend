@@ -94,13 +94,10 @@ jobs:
         run: |
           ls -la ./src/BondBend.Aspire.AppHost/aspirate-output
 
-      - uses: vimtor/action-zip@v1.2
+      - uses: montudor/action-zip@v1
         with:
-          files: |
-            ./src/BondBend.Aspire.AppHost/aspirate-output/**
-          dest: ./release.zip
-
-
+          args: zip -qq -r ./release.zip ./src/BondBend.Aspire.AppHost/aspirate-output/
+ 
       # - name: Create Release
       #   uses: actions/github-script@v6
       #   with:
