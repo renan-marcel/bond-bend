@@ -98,7 +98,7 @@ jobs:
       - name: zip teste
         run: |
           cd ./src/BondBend.Aspire.AppHost/aspirate-output/
-          zip -r ../../../../kube.zip ./*
+          zip -r ../../../kube.zip ./*
 
       # - name: Create Release
       #   uses: actions/github-script@v6
