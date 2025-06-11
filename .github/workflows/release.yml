@@ -82,43 +82,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }} 
 
-
       # Generate Kubernetes manifests
       - name: Generate Kubernetes Manifests
         run: |
           cd src/BondBend.Aspire.AppHost
-          aspirate init -cr ghcr.io -ct latest --disable-secrets true --non-interactive
-          aspirate generate --image-pull-policy Always --non-interactive --disable-secrets --include-dashboard false -pa username=admin -pa password=securepass -ct ${{ github.run_number }} -cr ghcr.io -crp renan-marcel
+            -cr ghcr.io -ct latest --disable-secrets true --non-interactive
+          aspirate generate --image-pull-policy Always --non-interactive --disable-secrets --include-dashboard true -pa username=admin -pa password=securepass -ct ${{ steps.gitversion.outputs.SemVer }} -cr ghcr.io -crp renan-marcel
 
       - name: dir teste
         run: |
           ls -la ./src/BondBend.Aspire.AppHost/aspirate-output
 
-
       - name: zip teste
         run: |
           cd ./src/BondBend.Aspire.AppHost/aspirate-output/
           zip -r ../../../kube.zip ./*
-
-      # - name: Create Release
-      #   uses: actions/github-script@v6
-      #   with:
-      #     script: |
-      #       let isPrerelease = false;
-
-      #       if (context.ref.startsWith('refs/heads/feature/')) {
-      #         isPrerelease = true;
-      #       }
-
-      #       github.rest.repos.createRelease({
-      #         owner: context.repo.owner,
-      #         repo: context.repo.repo,
-      #         tag_name: '${{ steps.gitversion.outputs.SemVer }}',
-      #         name: 'Release ${{ steps.gitversion.outputs.SemVer }}',
-      #         draft: false,
-      #         prerelease: isPrerelease,
-      #         generate_release_notes: true
-      #       })
 
       - name: Create Release
         id: create_release
@@ -130,6 +108,11 @@ jobs:
           release_name: Release ${{ steps.gitversion.outputs.SemVer }}
           draft: false
           prerelease: false
+          generate_release_notes: true
+          body: |
+            ## Release Notes
+            - Version: ${{ steps.gitversion.outputs.SemVer }}
+            - Commit: ${{ github.sha }}
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
