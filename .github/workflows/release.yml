@@ -115,17 +115,6 @@ jobs:
         uses: release-drafter/release-drafter@v5
         with:
           config-name: release-drafter.yml
-          tag-template: ${{ steps.gitversion.outputs.SemVer }}
-          version-resolver: gitversion
-          categories: |
-            - title: 🚀 Features
-              labels: [feature]
-            - title: 🐛 Bug Fixes
-              labels: [bug]
-            - title: 📚 Documentation
-              labels: [documentation]
-            - title: 🧰 Maintenance
-              labels: [maintenance]
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
