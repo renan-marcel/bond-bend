@@ -71,11 +71,6 @@ jobs:
       - name: Build
         run: dotnet build -c Release --no-restore --no-incremental /p:Version=${{ steps.gitversion.outputs.AssemblySemVer }} /p:AssemblyVersion=${{ steps.gitversion.outputs.AssemblySemVer }} /p:InformationalVersion=${{ steps.gitversion.outputs.InformationalVersion }} --verbosity normal
 
-      - name: Publish Server binaries
-        run: | 
-          dotnet publish -c Release -o publish-api --no-build src/BondBend.Aspire.ApiService
-          dotnet publish -c Release -o publish-web --no-build src/BondBend.Aspire.Web
-
       # Install Aspirate globally
       - name: Install Aspirate
         run: dotnet tool install -g aspirate --prerelease
@@ -95,30 +90,9 @@ jobs:
           aspirate init -cr ghcr.io -ct latest --disable-secrets true --non-interactive
           aspirate generate --image-pull-policy Always --non-interactive --disable-secrets --include-dashboard false -pa username=admin -pa password=securepass -ct ${{ github.run_number }} -cr ghcr.io -crp renan-marcel
 
-
-      - name: Print Folder Tree 2
-        uses: jaywcjlove/github-action-folder-tree@main
-        id: tree-2
-        with:
-            exclude: ".git|.github|.vscode|.idea|bin|obj|packages|node_modules|wwwroot"
-            depth: 1
-            path: ./
-
-      # - name: Build Container Image
-      #   run: |
-      #     docker build -f src/BondBend.Aspire.ApiService/Dockerfile -t ghcr.io/renan-marcel/bond-bend.api:${{ steps.gitversion.outputs.SemVer }} ./publish-api
-      #     docker build -f src/BondBend.Aspire.Web/Dockerfile -t ghcr.io/renan-marcel/bond-bend.web:${{ steps.gitversion.outputs.SemVer }} ./publish-web
-
-      # - name: Publish Container Image
-      #   run: |
-      #     docker push ghcr.io/renan-marcel/bond-bend.api:${{ steps.gitversion.outputs.SemVer }}
-      #     docker push ghcr.io/renan-marcel/bond-bend.web:${{ steps.gitversion.outputs.SemVer }}
-
-
-      
-
       - name: Create Release
         uses: actions/github-script@v6
+        id: create_release
         with:
           script: |
             let isPrerelease = false;
@@ -136,3 +110,14 @@ jobs:
               prerelease: isPrerelease,
               generate_release_notes: true
             })
+
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: ./src/BondBend.Aspire.AppHost/aspirate-output/kustomization.yaml
+          asset_name: kustomization.yaml
+          asset_content_type: application/yaml
