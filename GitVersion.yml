@@ -1,48 +1,15 @@
-mode: ContinuousDeployment
+assembly-versioning-scheme: MajorMinorPatch
+mode: Mainline
 branches:
   main:
-    regex: ^main$
-    tag: ''
-    increment: Minor
-    prevent-increment-of-merged-branch-version: true
-    track-merge-target: false
-    is-mainline: true
+    mode: ContinuousDelivery
+    tag: ""
   develop:
-    regex: ^develop$
-    tag: alpha
-    increment: Minor
-    prevent-increment-of-merged-branch-version: false
-    track-merge-target: false
-  release:
-    regex: ^releases?[/-]
-    tag: rc
-    increment: Patch
-    prevent-increment-of-merged-branch-version: false
-    track-merge-target: false
+    mode: ContinuousDeployment
+    tag: "dev"
   feature:
-    regex: ^features?[/-]
-    tag: useBranchName
-    increment: Minor
-    prevent-increment-of-merged-branch-version: false
-    track-merge-target: false
-  hotfix:
-    regex: ^hotfix(es)?[/-]
-    tag: beta
-    increment: Patch
-    prevent-increment-of-merged-branch-version: false
-    track-merge-target: false
-  support:
-    regex: ^support[/-]
-    tag: ''
-    increment: Patch
-    prevent-increment-of-merged-branch-version: false
-    track-merge-target: false
-  pull-request:
-    regex: ^(pull|pull\-requests|pr)[/-]
-    tag: PullRequest
-    increment: Patch
-    prevent-increment-of-merged-branch-version: true
-    track-merge-target: false
+    regex: feature(s)?[/-]
+    mode: ContinuousDeployment
+    tag: "{BranchName}"
 ignore:
   sha: []
-merge-message-formats: {}

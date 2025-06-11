@@ -36,6 +36,10 @@ jobs:
         id: gitversion
         uses: gittools/actions/gitversion/execute@v0.11.0
 
+      - name: Version
+        run: |
+          echo Building ${{ steps.gitversion.outputs.SemVer }}
+
       - name: Restore dependencies
         run: dotnet restore
 
