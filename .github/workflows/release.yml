@@ -43,7 +43,7 @@ jobs:
             versionSpec: '5.x'
 
       - name: Determine Version
-        id: version_step # step id used as a reference for output values
+        id: gitversion # step id used as a reference for output values
         uses: gittools/actions/gitversion/execute@v0.10.2
         with:
             useConfigFile: true
