@@ -90,26 +90,36 @@ jobs:
           aspirate init -cr ghcr.io -ct latest --disable-secrets true --non-interactive
           aspirate generate --image-pull-policy Always --non-interactive --disable-secrets --include-dashboard false -pa username=admin -pa password=securepass -ct ${{ github.run_number }} -cr ghcr.io -crp renan-marcel
 
+      # - name: Create Release
+      #   uses: actions/github-script@v6
+      #   with:
+      #     script: |
+      #       let isPrerelease = false;
+
+      #       if (context.ref.startsWith('refs/heads/feature/')) {
+      #         isPrerelease = true;
+      #       }
+
+      #       github.rest.repos.createRelease({
+      #         owner: context.repo.owner,
+      #         repo: context.repo.repo,
+      #         tag_name: '${{ steps.gitversion.outputs.SemVer }}',
+      #         name: 'Release ${{ steps.gitversion.outputs.SemVer }}',
+      #         draft: false,
+      #         prerelease: isPrerelease,
+      #         generate_release_notes: true
+      #       })
+
       - name: Create Release
-        uses: actions/github-script@v6
         id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          script: |
-            let isPrerelease = false;
-
-            if (context.ref.startsWith('refs/heads/feature/')) {
-              isPrerelease = true;
-            }
-
-            github.rest.repos.createRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag_name: '${{ steps.gitversion.outputs.SemVer }}',
-              name: 'Release ${{ steps.gitversion.outputs.SemVer }}',
-              draft: false,
-              prerelease: isPrerelease,
-              generate_release_notes: true
-            })
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ steps.gitversion.outputs.SemVer }}
+          draft: false
+          prerelease: false
 
       - name: Upload Release Asset
         id: upload-release-asset 
