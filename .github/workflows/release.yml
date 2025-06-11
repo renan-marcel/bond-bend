@@ -97,7 +97,7 @@ jobs:
       - uses: vimtor/action-zip@v1.2
         with:
           files: |
-            ./src/BondBend.Aspire.AppHost/aspirate-output/*.yaml
+            ./src/BondBend.Aspire.AppHost/aspirate-output/**
           dest: ./release.zip
 
 
