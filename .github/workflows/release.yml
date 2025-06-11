@@ -9,9 +9,22 @@ on:
         branches:
             - main
             - develop
+    workflow_dispatch:
+      inputs:
+        input:
+          description: "Bond-Bend service"
+          required: false
+          default: "Bond-Bend"
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
 
 env:
     NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+    DOTNET_NOLOGO: true
 
 
 jobs:
@@ -19,16 +32,98 @@ jobs:
     runs-on: [ubuntu-latest]
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+            fetch-depth: 0 # Fetch all history for all branches and tags
 
       - name: Setup .NET 9 SDK
         uses: actions/setup-dotnet@v4
         with:
-                    dotnet-version: '9.0.x'
+            dotnet-version: '9.0.x'
+
+      - name: Print Folder Tree
+        uses: jaywcjlove/github-action-folder-tree@main
+        id: tree
+        with:
+            exclude: ".git|.github|.vscode|.idea|bin|obj|packages|node_modules|wwwroot"
+            depth: 1
+            path: ./
+
+      - name: Setup Git Version
+        uses: gittools/actions/gitversion/setup@v0.10.2
+        with:
+            versionSpec: '5.x'
+
+      - name: Determine Version
+        id: gitversion # step id used as a reference for output values
+        uses: gittools/actions/gitversion/execute@v0.10.2
+        with:
+            useConfigFile: true
+
+      - name: Version
+        run: |
+          echo Building ${{ steps.gitversion.outputs.SemVer }}
 
       - name: Restore dependencies
         run: dotnet restore
 
       - name: Build
-        run: dotnet build -c Release --no-restore --no-incremental --verbosity normal
+        run: dotnet build -c Release --no-restore --no-incremental /p:Version=${{ steps.gitversion.outputs.AssemblySemVer }} /p:AssemblyVersion=${{ steps.gitversion.outputs.AssemblySemVer }} /p:InformationalVersion=${{ steps.gitversion.outputs.InformationalVersion }} --verbosity normal
+
+      # Install Aspirate globally
+      - name: Install Aspirate
+        run: dotnet tool install -g aspirate --prerelease
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }} 
+
+
+      # Generate Kubernetes manifests
+      - name: Generate Kubernetes Manifests
+        run: |
+          cd src/BondBend.Aspire.AppHost
+          aspirate init -cr ghcr.io -ct latest --disable-secrets true --non-interactive
+          aspirate generate --image-pull-policy Always --non-interactive --disable-secrets --include-dashboard false -pa username=admin -pa password=securepass -ct '${{ steps.gitversion.outputs.SemVer }}' -cr ghcr.io -crp renan-marcel
+
+      - name: dir teste
+        run: |
+          ls -la ./src/BondBend.Aspire.AppHost/aspirate-output
+
+      - name: zip teste
+        run: |
+          cd ./src/BondBend.Aspire.AppHost/aspirate-output/
+          zip -r ../../../kube.zip ./*
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.gitversion.outputs.SemVer }}
+          release_name: Release ${{ steps.gitversion.outputs.SemVer }}
+          draft: false
+          prerelease: false 
+
+      - name: Generate Release Notes
+        id: generate_release_notes
+        uses: release-drafter/release-drafter@v5
+        with:
+          config-name: release-drafter.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: ./kube.zip
+          asset_name: ./kube.zip
+          asset_content_type: application/zip
