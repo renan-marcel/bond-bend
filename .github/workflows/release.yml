@@ -88,7 +88,7 @@ jobs:
         run: |
           cd src/BondBend.Aspire.AppHost
           aspirate init -cr ghcr.io -ct latest --disable-secrets true --non-interactive
-          aspirate generate --image-pull-policy Always --non-interactive --disable-secrets --include-dashboard false -pa username=admin -pa password=securepass -ct '${{ github.run_number }}' -cr ghcr.io -crp renan-marcel
+          aspirate generate --image-pull-policy Always --non-interactive --disable-secrets --include-dashboard false -pa username=admin -pa password=securepass -ct '${{ steps.gitversion.outputs.SemVer }}' -cr ghcr.io -crp renan-marcel
 
       - name: dir teste
         run: |
