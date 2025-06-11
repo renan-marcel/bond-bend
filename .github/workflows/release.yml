@@ -71,3 +71,8 @@ jobs:
       - name: Build
         run: dotnet build -c Release --no-restore --no-incremental /p:Version=${{ steps.gitversion.outputs.AssemblySemVer }} /p:AssemblyVersion=${{ steps.gitversion.outputs.AssemblySemVer }} /p:InformationalVersion=${{ steps.gitversion.outputs.InformationalVersion }} --verbosity normal
 
+      - name: Publish Server binaries
+        run: | 
+        dotnet publish -c Release -o publish --no-build src/BondBend.Aspire.ApiService
+        dotnet publish -c Release -o publish --no-build src/BondBend.Aspire.Web
+
