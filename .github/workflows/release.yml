@@ -94,10 +94,18 @@ jobs:
         run: |
           ls -la ./src/BondBend.Aspire.AppHost/aspirate-output
 
+
       - uses: montudor/action-zip@v1
         with:
           args: zip -qq -r ./release.zip ./src/BondBend.Aspire.AppHost/aspirate-output/
- 
+
+      - uses: vimtor/action-zip@v1.2
+        with:
+          files: |
+            ./src/BondBend.Aspire.AppHost/aspirate-output/**/**.yaml
+          dest: ./release-2.zip
+
+
       # - name: Create Release
       #   uses: actions/github-script@v6
       #   with:
@@ -130,7 +138,6 @@ jobs:
           prerelease: false
 
       - name: Upload Release Asset
-        id: upload-release-asset 
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -138,4 +145,14 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
           asset_path: ./release.zip
           asset_name: ./release.zip
+          asset_content_type: application/zip
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: ./release-2.zip
+          asset_name: ./release-2.zip
           asset_content_type: application/zip
