@@ -47,7 +47,7 @@ jobs:
         id: tree
         with:
             exclude: ".git|.github|.vscode|.idea|bin|obj|packages|node_modules|wwwroot"
-            depth: 0
+            depth: 1
             path: ./
 
       - name: Setup Git Version
@@ -76,6 +76,10 @@ jobs:
           dotnet publish -c Release -o publish-api --no-build src/BondBend.Aspire.ApiService
           dotnet publish -c Release -o publish-web --no-build src/BondBend.Aspire.Web
 
+      # Install Aspirate globally
+      - name: Install Aspirate
+        run: dotnet tool install -g aspirate --prerelease
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -83,15 +87,35 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }} 
 
-      - name: Build Container Image
-        run: |
-          docker build -f src/BondBend.Aspire.ApiService/Dockerfile -t ghcr.io/renan-marcel/bond-bend.api:${{ steps.gitversion.outputs.SemVer }} ./publish-api
-          docker build -f src/BondBend.Aspire.Web/Dockerfile -t ghcr.io/renan-marcel/bond-bend.web:${{ steps.gitversion.outputs.SemVer }} ./publish-web
 
-      - name: Publish Container Image
+      # Generate Kubernetes manifests
+      - name: Generate Kubernetes Manifests
         run: |
-          docker push ghcr.io/renan-marcel/bond-bend.api:${{ steps.gitversion.outputs.SemVer }}
-          docker push ghcr.io/renan-marcel/bond-bend.web:${{ steps.gitversion.outputs.SemVer }}
+          cd src/BondBend.Aspire.AppHost
+          aspirate init -cr ghcr.io -ct latest --disable-secrets true --non-interactive
+          aspirate generate --image-pull-policy Always --non-interactive --disable-secrets --include-dashboard false -pa username=admin -pa password=securepass -ct ${{ github.run_number }} -cr ghcr.io -crp renan-marcel
+
+
+      - name: Print Folder Tree 2
+        uses: jaywcjlove/github-action-folder-tree@main
+        id: tree
+        with:
+            exclude: ".git|.github|.vscode|.idea|bin|obj|packages|node_modules|wwwroot"
+            depth: 1
+            path: ./
+
+      # - name: Build Container Image
+      #   run: |
+      #     docker build -f src/BondBend.Aspire.ApiService/Dockerfile -t ghcr.io/renan-marcel/bond-bend.api:${{ steps.gitversion.outputs.SemVer }} ./publish-api
+      #     docker build -f src/BondBend.Aspire.Web/Dockerfile -t ghcr.io/renan-marcel/bond-bend.web:${{ steps.gitversion.outputs.SemVer }} ./publish-web
+
+      # - name: Publish Container Image
+      #   run: |
+      #     docker push ghcr.io/renan-marcel/bond-bend.api:${{ steps.gitversion.outputs.SemVer }}
+      #     docker push ghcr.io/renan-marcel/bond-bend.web:${{ steps.gitversion.outputs.SemVer }}
+
+
+      
 
       - name: Create Release
         uses: actions/github-script@v6
