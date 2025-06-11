@@ -98,7 +98,7 @@ jobs:
 
       - name: Print Folder Tree 2
         uses: jaywcjlove/github-action-folder-tree@main
-        id: tree
+        id: tree-2
         with:
             exclude: ".git|.github|.vscode|.idea|bin|obj|packages|node_modules|wwwroot"
             depth: 1
