@@ -90,6 +90,10 @@ jobs:
           aspirate init -cr ghcr.io -ct latest --disable-secrets true --non-interactive
           aspirate generate --image-pull-policy Always --non-interactive --disable-secrets --include-dashboard false -pa username=admin -pa password=securepass -ct ${{ github.run_number }} -cr ghcr.io -crp renan-marcel
 
+      - name: dir teste
+        run: |
+          ls -la ./src/BondBend.Aspire.AppHost/aspirate-output
+
       # - name: Create Release
       #   uses: actions/github-script@v6
       #   with:
