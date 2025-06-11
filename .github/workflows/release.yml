@@ -87,3 +87,28 @@ jobs:
         run: |
           docker build -f src/BondBend.Aspire.ApiService/Dockerfile -t ghcr.io/renan-marcel/bond-bend.api:${{ steps.gitversion.outputs.SemVer }} ./publish-api
           docker build -f src/BondBend.Aspire.Web/Dockerfile -t ghcr.io/renan-marcel/bond-bend.web:${{ steps.gitversion.outputs.SemVer }} ./publish-web
+
+      - name: Publish Container Image
+        run: |
+          docker push ghcr.io/renan-marcel/bond-bend.api:${{ steps.gitversion.outputs.SemVer }}
+          docker push ghcr.io/renan-marcel/bond-bend.web:${{ steps.gitversion.outputs.SemVer }}
+
+      - name: Create Release
+        uses: actions/github-script@v6
+        with:
+          script: |
+            let isPrerelease = false;
+
+            if (context.ref.startsWith('refs/heads/feature/')) {
+              isPrerelease = true;
+            }
+
+            github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: '${{ steps.gitversion.outputs.SemVer }}',
+              name: 'Release ${{ steps.gitversion.outputs.SemVer }}',
+              draft: false,
+              prerelease: isPrerelease,
+              generate_release_notes: true
+            })
