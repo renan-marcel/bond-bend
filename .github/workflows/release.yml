@@ -9,9 +9,22 @@ on:
         branches:
             - main
             - develop
+    workflow_dispatch:
+      inputs:
+        input:
+          description: "Bond-Bend service"
+          required: false
+          default: "Bond-Bend"
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
 
 env:
     NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+    DOTNET_NOLOGO: true
 
 
 jobs:
@@ -57,3 +70,4 @@ jobs:
 
       - name: Build
         run: dotnet build -c Release --no-restore --no-incremental /p:Version=${{ steps.gitversion.outputs.AssemblySemVer }} /p:AssemblyVersion=${{ steps.gitversion.outputs.AssemblySemVer }} /p:InformationalVersion=${{ steps.gitversion.outputs.InformationalVersion }} --verbosity normal
+
